@@ -21,10 +21,15 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border: 1px solid #ccc;
     padding: 10px;
-    height: 120px;
+    height: auto;
+    width: calc(100% - 20px);
+    aspect-ratio: 1 / 1;
     flex-shrink: 0;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    border: none;
 }
 
 #playPauseContainer {
@@ -32,22 +37,15 @@ body {
     height: 100%;
     margin-right: 10px;
     cursor: pointer;
-    aspect-ratio: 1 / 1; /* Ensure 1:1 aspect ratio */
-}
-
-#trackImage {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 #playPauseButton {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 40px;
-    height: 40px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
     border: none;
     background-color: rgba(0, 0, 0, 0.5);
@@ -55,42 +53,64 @@ body {
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    text-align: center;
+    line-height: 80px;
 }
 
 #playPauseButton.play::before {
     content: '▶';
-    font-size: 20px;
+    font-size: 40px;
     color: white;
+    display: inline-block;
+    vertical-align: middle;
+    position: relative;
+    left: 3px;
+    top: 2px;
 }
 
 #playPauseButton.pause::before {
     content: '❚❚';
-    font-size: 20px;
+    font-size: 40px;
     color: white;
+    display: inline-block;
+    vertical-align: middle;
 }
 
 #trackInfo {
-    flex-grow: 1;
-    margin-right: 10px;
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 5px;
+    border-radius: 5px;
+    text-align: center;
+    z-index: 2;
 }
 
 #trackInfo a {
     display: block;
     font-weight: bold;
-    color: inherit; /* Make link color same as usual text */
+    color: inherit;
 }
 
-#timeInfo {
-    margin-right: 10px;
+#speedButton, #liveButton {
+    position: absolute;
+    bottom: 60px;
+    z-index: 2;
+    padding: 5px;
+    border-radius: 5px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    cursor: pointer;
 }
 
 #speedButton {
+    right: 130px;
     margin-left: 10px;
     padding: 5px 10px;
-    border: none;
-    cursor: pointer;
-    background-color: #ccc;
-    color: black;
 }
 
 #speedButton.active {
@@ -99,10 +119,9 @@ body {
 }
 
 #liveButton {
+    right: 70px;
     margin-left: 10px;
     padding: 5px 10px;
-    border: none;
-    cursor: pointer;
 }
 
 #liveButton.active {
@@ -115,17 +134,65 @@ body {
     color: black;
 }
 
+#volumeControlContainer {
+    position: absolute;
+    right: 10px;
+    bottom: 60px;
+    z-index: 2;
+    height: 150px;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 5px;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    margin-left: 10px;
+}
+
+#volumeIcon {
+    width: 24px;
+    height: 24px;
+    margin-top: 5px;
+    background: url('data:image/svg+xml,<svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 9C16.5 9.5 17 10.5 17 12C17 13.5 16.5 14.5 16 15M19 6C20.5 7.5 21 10 21 12C21 14 20.5 16.5 19 18M13 3L7 8H5C3.89543 8 3 8.89543 3 10V14C3 15.1046 3.89543 16 5 16H7L13 21V3Z" stroke="%23FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat center center;
+    background-size: contain;
+}
+
+#volumeIcon.muted {
+    background: url('data:image/svg+xml,<svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 9L22 15M22 9L16 15M13 3L7 8H5C3.89543 8 3 8.89543 3 10V14C3 15.1046 3.89543 16 5 16H7L13 21V3Z" stroke="%23FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat center center;
+    background-size: contain;
+}
+
+#volumeIcon.low {
+    background: url('data:image/svg+xml,<svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 9C16.5 9.5 17 10.5 17 12C17 13.5 16.5 14.5 16 15M13 3L7 8H5C3.89543 8 3 8.89543 3 10V14C3 15.1046 3.89543 16 5 16H7L13 21V3Z" stroke="%23FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat center center;
+    background-size: contain;
+}
+
+#volumeBarContainer {
+    width: 10px;
+    height: calc(100% - 30px);
+    background-color: #555;
+    position: relative;
+}
+
+#volumeBar {
+    width: 100%;
+    height: 50%;
+    background-color: #e0e0e0;
+    position: absolute;
+    bottom: 0;
+}
+
 #progressBarContainer {
     width: 100%;
-    height: 30px; /* Adjust height to accommodate padding */
+    height: 30px;
     padding: 10px 0;
     display: flex;
     align-items: center;
     position: relative;
     flex-shrink: 0;
-    border-left: 1px solid #ccc;
-    border-right: 1px solid #ccc;
-    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+    box-sizing: border-box;
+    background-color: #333;
+    color: white;
 }
 
 #currentTime, #totalTime {
@@ -135,6 +202,7 @@ body {
     width: 50px;
     display: inline-block;
     text-align: center;
+    color: white;
 }
 
 #progressBarWrapper {
@@ -142,12 +210,12 @@ body {
     position: relative;
     height: 100%;
     z-index: 0;
-    background-color: #e0e0e0;
+    background-color: #555;
 }
 
 #bufferBar {
     height: 100%;
-    background-color: #999;
+    background-color: #777;
     width: 0;
     position: absolute;
     top: 0;
@@ -157,7 +225,7 @@ body {
 
 #progressBar {
     height: 100%;
-    background-color: #555;
+    background-color: white;
     width: 0;
     position: absolute;
     top: 0;
@@ -175,6 +243,7 @@ body {
     overflow-y: auto;
     flex-grow: 1;
     border: 1px solid #ccc;
+    border-top: none;
 }
 
 #playlist li {
@@ -209,47 +278,6 @@ body {
     color: red;
     font-weight: bold;
     margin-right: 10px;
-}
-
-#volumeControlContainer {
-    display: flex;
-    flex-direction: column-reverse;
-    align-items: center;
-    margin-left: 10px;
-    height: 100%;
-}
-
-#volumeIcon {
-    width: 24px;
-    height: 24px;
-    margin-top: 5px;
-    background: url('data:image/svg+xml,<svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 9C16.5 9.5 17 10.5 17 12C17 13.5 16.5 14.5 16 15M19 6C20.5 7.5 21 10 21 12C21 14 20.5 16.5 19 18M13 3L7 8H5C3.89543 8 3 8.89543 3 10V14C3 15.1046 3.89543 16 5 16H7L13 21V3Z" stroke="%23000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat center center;
-    background-size: contain;
-}
-
-#volumeIcon.muted {
-    background: url('data:image/svg+xml,<svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 9L22 15M22 9L16 15M13 3L7 8H5C3.89543 8 3 8.89543 3 10V14C3 15.1046 3.89543 16 5 16H7L13 21V3Z" stroke="%23000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat center center;
-    background-size: contain;
-}
-
-#volumeIcon.low {
-    background: url('data:image/svg+xml,<svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 9C16.5 9.5 17 10.5 17 12C17 13.5 16.5 14.5 16 15M13 3L7 8H5C3.89543 8 3 8.89543 3 10V14C3 15.1046 3.89543 16 5 16H7L13 21V3Z" stroke="%23000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat center center;
-    background-size: contain;
-}
-
-#volumeBarContainer {
-    width: 10px;
-    height: calc(100% - 30px);
-    background-color: #e0e0e0;
-    position: relative;
-}
-
-#volumeBar {
-    width: 100%;
-    height: 50%;
-    background-color: #555;
-    position: absolute;
-    bottom: 0;
 }
 
 .live-label {

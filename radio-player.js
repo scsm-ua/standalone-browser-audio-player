@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const audioPlayer = document.getElementById('audioPlayer');
     const playPauseContainer = document.getElementById('playPauseContainer');
     const playPauseButton = document.getElementById('playPauseButton');
-    const trackImage = document.getElementById('trackImage');
     const trackLink = document.getElementById('trackLink');
     const currentTime = document.getElementById('currentTime');
     const totalTime = document.getElementById('totalTime');
@@ -250,19 +249,38 @@ document.addEventListener('DOMContentLoaded', function() {
     audioPlayer.addEventListener('ended', function() {
         currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
         playTrack(currentTrackIndex);
+        scrollToNextTrackSmooth(currentTrackIndex); // Scroll to next track smoothly
         updateLiveButtonState();
     });
+
+    function scrollToNextTrackSmooth(index) {
+        scrollToTrack(index, { behavior: 'smooth', block: 'center' });
+    }
+
+    function scrollToLiveTrackNoSmooth(index) {
+        scrollToTrack(index, { block: 'center' });
+    }
+
+    function scrollToTrack(index, options) {
+        const items = playlist.querySelectorAll('li');
+        if (items[index]) {
+            items[index].scrollIntoView(options);
+        }
+    }
 
     audioPlayer.addEventListener('error', function() {
         console.error('Error playing track:', audioPlayer.error);
     });
 
     liveButton.addEventListener('click', function() {
-        const { track, position, index } = findCurrentTrackAndPosition();
-        if (track) {
-            currentTrackIndex = index;
-            playTrack(currentTrackIndex, true);
-            audioPlayer.currentTime = position;
+        if (!liveButton.classList.contains('active')) {
+            const { track, position, index } = findCurrentTrackAndPosition();
+            if (track) {
+                currentTrackIndex = index;
+                playTrack(currentTrackIndex, true);
+                audioPlayer.currentTime = position;
+                scrollToNextTrackSmooth(index); // Scroll to LIVE track smoothly
+            }
         }
     });
 
@@ -274,6 +292,7 @@ document.addEventListener('DOMContentLoaded', function() {
             currentTrackIndex = index;
             playTrack(currentTrackIndex, false);
             audioPlayer.currentTime = position;
+            scrollToLiveTrackNoSmooth(index); // Scroll to LIVE track without smooth
         } else {
             playTrack(currentTrackIndex, false);
         }
@@ -288,7 +307,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('audioSource').src = track.mp3;
             audioPlayer.load();
         }
-        trackImage.src = track.image;
+        document.getElementById('player').style.backgroundImage = `url(${track.image})`; // Set player background to track image
         trackLink.href = track.link;
         trackLink.textContent = track.title;
         if (shouldPlay) {
