@@ -1,0 +1,276 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+#container {
+    max-width: 700px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+#player {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid #ccc;
+    padding: 10px;
+    height: 120px;
+    flex-shrink: 0;
+}
+
+#playPauseContainer {
+    position: relative;
+    height: 100%;
+    margin-right: 10px;
+    cursor: pointer;
+    aspect-ratio: 1 / 1; /* Ensure 1:1 aspect ratio */
+}
+
+#trackImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#playPauseButton {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+#playPauseButton.play::before {
+    content: '▶';
+    font-size: 20px;
+    color: white;
+}
+
+#playPauseButton.pause::before {
+    content: '❚❚';
+    font-size: 20px;
+    color: white;
+}
+
+#trackInfo {
+    flex-grow: 1;
+    margin-right: 10px;
+}
+
+#trackInfo a {
+    display: block;
+    font-weight: bold;
+    color: inherit; /* Make link color same as usual text */
+}
+
+#timeInfo {
+    margin-right: 10px;
+}
+
+#speedButton {
+    margin-left: 10px;
+    padding: 5px 10px;
+    border: none;
+    cursor: pointer;
+    background-color: #ccc;
+    color: black;
+}
+
+#speedButton.active {
+    background-color: red;
+    color: white;
+}
+
+#liveButton {
+    margin-left: 10px;
+    padding: 5px 10px;
+    border: none;
+    cursor: pointer;
+}
+
+#liveButton.active {
+    background-color: red;
+    color: white;
+}
+
+#liveButton.inactive {
+    background-color: #ccc;
+    color: black;
+}
+
+#progressBarContainer {
+    width: 100%;
+    height: 30px; /* Adjust height to accommodate padding */
+    padding: 10px 0;
+    display: flex;
+    align-items: center;
+    position: relative;
+    flex-shrink: 0;
+    border-left: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+#currentTime, #totalTime {
+    flex-shrink: 0;
+    z-index: 1;
+    margin: 0 10px;
+    width: 50px;
+    display: inline-block;
+    text-align: center;
+}
+
+#progressBarWrapper {
+    flex-grow: 1;
+    position: relative;
+    height: 100%;
+    z-index: 0;
+    background-color: #e0e0e0;
+}
+
+#bufferBar {
+    height: 100%;
+    background-color: #999;
+    width: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+#progressBar {
+    height: 100%;
+    background-color: #555;
+    width: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+}
+
+#audioPlayer {
+}
+
+#playlist {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+    flex-grow: 1;
+    border: 1px solid #ccc;
+}
+
+#playlist li {
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    border-bottom: 1px solid #ccc;
+    cursor: pointer;
+}
+
+#playlist li img {
+    width: 30px;
+    height: 30px;
+    margin-right: 10px;
+}
+
+#playlist li .title {
+    flex-grow: 1;
+    text-align: left;
+}
+
+#playlist li .duration {
+    margin-left: auto;
+    text-align: right;
+}
+
+#playlist li.playing {
+    background-color: #f0f0f0;
+}
+
+#playlist li .live-label {
+    color: red;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+#volumeControlContainer {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    margin-left: 10px;
+    height: 100%;
+}
+
+#volumeIcon {
+    width: 24px;
+    height: 24px;
+    margin-top: 5px;
+    background: url('data:image/svg+xml,<svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 9C16.5 9.5 17 10.5 17 12C17 13.5 16.5 14.5 16 15M19 6C20.5 7.5 21 10 21 12C21 14 20.5 16.5 19 18M13 3L7 8H5C3.89543 8 3 8.89543 3 10V14C3 15.1046 3.89543 16 5 16H7L13 21V3Z" stroke="%23000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat center center;
+    background-size: contain;
+}
+
+#volumeIcon.muted {
+    background: url('data:image/svg+xml,<svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 9L22 15M22 9L16 15M13 3L7 8H5C3.89543 8 3 8.89543 3 10V14C3 15.1046 3.89543 16 5 16H7L13 21V3Z" stroke="%23000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat center center;
+    background-size: contain;
+}
+
+#volumeIcon.low {
+    background: url('data:image/svg+xml,<svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 9C16.5 9.5 17 10.5 17 12C17 13.5 16.5 14.5 16 15M13 3L7 8H5C3.89543 8 3 8.89543 3 10V14C3 15.1046 3.89543 16 5 16H7L13 21V3Z" stroke="%23000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat center center;
+    background-size: contain;
+}
+
+#volumeBarContainer {
+    width: 10px;
+    height: calc(100% - 30px);
+    background-color: #e0e0e0;
+    position: relative;
+}
+
+#volumeBar {
+    width: 100%;
+    height: 50%;
+    background-color: #555;
+    position: absolute;
+    bottom: 0;
+}
+
+.live-label {
+    display: flex;
+    align-items: center;
+}
+
+.live-circle {
+    width: 8px;
+    height: 8px;
+    background-color: red;
+    border-radius: 50%;
+    margin-right: 5px;
+    animation: blink 3s infinite;
+}
+
+@keyframes blink {
+    0%, 100% {
+        background-color: red;
+    }
+    50% {
+        background-color: #ffcccc;
+    }
+}

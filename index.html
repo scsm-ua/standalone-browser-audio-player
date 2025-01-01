@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radio</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="container">
+        <div id="player">
+            <div id="playPauseContainer">
+                <img id="trackImage" src="" alt="Track Image">
+                <button id="playPauseButton" class="play" aria-label="Play/Pause"></button>
+            </div>
+            <div id="trackInfo">
+                <a id="trackLink" href="" target="_blank"></a>
+            </div>
+            <button id="speedButton">1x</button>
+            <button id="liveButton" class="inactive">LIVE</button>
+            <div id="volumeControlContainer">
+                <div id="volumeIcon"></div>
+                <div id="volumeBarContainer">
+                    <div id="volumeBar"></div>
+                </div>
+            </div>
+        </div>
+        <div id="progressBarContainer">
+            <div id="currentTime">0:00</div>
+            <div id="progressBarWrapper">
+                <div id="bufferBar"></div>
+                <div id="progressBar"></div>
+            </div>
+            <div id="totalTime">0:00</div>
+        </div>
+        <ul id="playlist"></ul>
+    </div>
+
+    <audio id="audioPlayer">
+        <source id="audioSource" src="" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <script src="radio-player.js"></script>
+</body>
+</html>
