@@ -99,16 +99,13 @@ body {
 
 #speedButton, #liveButton {
     padding: 5px 10px;
+    margin-left: 10px;
     border-radius: 5px;
     background-color: rgba(0, 0, 0, 0.5);
     color: white;
     border: none;
     cursor: pointer;
     margin-left: 5px;
-}
-
-#speedButton {
-    margin-right: 7px;
 }
 
 #speedButton.active {
@@ -234,14 +231,14 @@ body {
     margin: 0;
     overflow-y: auto;
     flex-grow: 1;
-    border: 1px solid #ccc;
-    border-top: none;
 }
 
 #playlist li {
     display: flex;
     align-items: center;
     padding: 5px;
+    border-left: 1px solid #ccc;
+    border-right: 1px solid #ccc;
     border-bottom: 1px solid #ccc;
     cursor: pointer;
 }
@@ -272,6 +269,17 @@ body {
     margin-right: 10px;
 }
 
+#playlist li.playlist-title {
+    background-color: #333;
+    color: white;
+    border: none;
+    padding: 10px;
+}
+
+#playlist li.last-playlist-item {
+    border-bottom: none;
+}
+
 .live-label {
     display: flex;
     align-items: center;
@@ -293,4 +301,18 @@ body {
     50% {
         background-color: #ffcccc;
     }
+}
+
+#playlistTitle {
+    background-color: #333;
+    color: white;
+    font-size: 14px;
+    padding: 10px 10px 0 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#playlistTitleText {
+    flex-grow: 1;
 }

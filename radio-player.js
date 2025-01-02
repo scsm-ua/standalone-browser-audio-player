@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const volumeIcon = document.getElementById('volumeIcon');
     const volumeBarContainer = document.getElementById('volumeBarContainer');
     const volumeBar = document.getElementById('volumeBar');
+    const playlistTitleText = document.getElementById('playlistTitleText');
     let currentTrackIndex = 0;
     let tracks = [];
     let isPlaying = false;
@@ -22,6 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let isFirstPlay = true;
     let playbackRate = 1;
     let isDragging = false;
+    let playlists = [];
 
     const applyVolume = (percentage) => {
         audioPlayer.volume = Math.min(Math.max(percentage, 0), 1);
@@ -34,25 +36,42 @@ document.addEventListener('DOMContentLoaded', function() {
     fetch('tracks.json')
         .then(response => response.json())
         .then(data => {
-            tracks = data;
-            tracks.forEach((track, index) => {
-                // track.duration = '0:30'; // Ensure duration is a string in "mm:ss" format
-                const li = document.createElement('li');
-                li.innerHTML = `
-                    <img src="${track.image}" alt="${track.title}">
-                    <span class="title">${track.title}</span>
-                    <span class="duration">${track.duration}</span>
-                `;
-                li.setAttribute('data-src', track.mp3);
-                li.setAttribute('data-index', index);
-                li.addEventListener('click', function() {
-                    const clickedTrackIndex = parseInt(this.getAttribute('data-index'));
-                    if (clickedTrackIndex !== currentTrackIndex) {
-                        currentTrackIndex = clickedTrackIndex;
-                        playTrack(currentTrackIndex);
-                    }
+            playlists = data;
+            data.forEach((playlistData, playlistIndex) => {
+                const playlistTitleLi = document.createElement('li');
+                playlistTitleLi.classList.add('playlist-title');
+                playlistTitleLi.textContent = playlistData.title;
+                playlistTitleLi.addEventListener('click', function() {
+                    currentTrackIndex = tracks.findIndex(track => track === playlistData.tracks[0]);
+                    playTrack(currentTrackIndex);
                 });
-                playlist.appendChild(li);
+                playlist.appendChild(playlistTitleLi);
+
+                playlistData.tracks.forEach(track => {
+                    tracks.push(track);
+                });
+
+                playlistData.tracks.forEach((track, index) => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <img src="${track.image}" alt="${track.title}">
+                        <span class="title">${track.title}</span>
+                        <span class="duration">${track.duration}</span>
+                    `;
+                    li.setAttribute('data-src', track.mp3);
+                    li.setAttribute('data-index', tracks.indexOf(track));
+                    li.addEventListener('click', function() {
+                        const clickedTrackIndex = parseInt(this.getAttribute('data-index'));
+                        if (clickedTrackIndex !== currentTrackIndex) {
+                            currentTrackIndex = clickedTrackIndex;
+                            playTrack(currentTrackIndex);
+                        }
+                    });
+                    if (index === playlistData.tracks.length - 1) {
+                        li.classList.add('last-playlist-item');
+                    }
+                    playlist.appendChild(li);
+                });
             });
             initializePlayerUI();
         })
@@ -63,6 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const savedPlaybackRate = localStorage.getItem('audioPlayerPlaybackRate');
     if (savedVolume !== null) {
         applyVolume(parseFloat(savedVolume));
+        isMuted = parseFloat(savedVolume) === 0;
     }
     if (savedPlaybackRate !== null) {
         playbackRate = parseFloat(savedPlaybackRate);
@@ -316,7 +336,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Restore playback speed
         audioPlayer.playbackRate = playbackRate;
         speedButton.textContent = playbackRate + 'x';
-        updatePlaylistHighlight();
+        updatePlaylistHighlight(index); // Pass the current track index to updatePlaylistHighlight
+        updatePlaylistTitle(findPlaylistTitleByTrack(track)); // Update playlist title
     }
 
     function updateLiveButtonState() {
@@ -352,10 +373,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function updatePlaylistHighlight() {
-        const items = playlist.querySelectorAll('li');
+    function updatePlaylistHighlight(currentIndex) {
+        const items = playlist.querySelectorAll('li.playing');
         items.forEach(item => item.classList.remove('playing'));
-        items[currentTrackIndex].classList.add('playing');
+        const currentItem = playlist.querySelector(`li[data-index="${currentIndex}"]`);
+        if (currentItem) {
+            currentItem.classList.add('playing');
+        }
     }
 
     function formatTime(seconds) {
@@ -402,6 +426,19 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             volumeIcon.classList.remove('muted', 'low');
         }
+    }
+
+    function updatePlaylistTitle(title) {
+        playlistTitleText.textContent = title;
+    }
+
+    function findPlaylistTitleByTrack(track) {
+        for (const playlistData of playlists) {
+            if (playlistData.tracks.includes(track)) {
+                return playlistData.title;
+            }
+        }
+        return '';
     }
 
     audioPlayer.addEventListener('progress', function() {
