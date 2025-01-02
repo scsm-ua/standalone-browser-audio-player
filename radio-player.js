@@ -282,7 +282,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function scrollToTrack(index, options) {
-        const items = playlist.querySelectorAll('li');
+        const items = playlist.querySelectorAll('li[data-index]');
         if (items[index]) {
             items[index].scrollIntoView(options);
         }
@@ -300,6 +300,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 playTrack(currentTrackIndex, true);
                 audioPlayer.currentTime = position;
                 scrollToNextTrackSmooth(index); // Scroll to LIVE track smoothly
+                // updatePlaylistHighlight(currentTrackIndex); // Redundant call, already handled in playTrack
             }
         }
     });
@@ -354,7 +355,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateLiveLabel() {
         const { track, index } = findCurrentTrackAndPosition();
-        const items = playlist.querySelectorAll('li');
+        const items = playlist.querySelectorAll('li[data-index]');
         items.forEach((item, i) => {
             const liveLabel = item.querySelector('.live-label');
             if (i === index) {
