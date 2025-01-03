@@ -1,3 +1,14 @@
+/*
+TODO:
+Fix play icon on android.
+Fix plyaer size on very wide screen (small desktop)
+Fix player size on very small screen (iphone 5c)
+Fix volume slider sensetivity for finger on small screen.
+Volume slider - make width bigger, remove background on slider.
+Two columnts design for big screen - review width to fit left column by height.
+Make playlist subtitles attachable to player.
+*/
+
 document.addEventListener('DOMContentLoaded', function() {
     const audioPlayer = document.getElementById('audioPlayer');
     const playPauseContainer = document.getElementById('playPauseContainer');
@@ -6,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentTime = document.getElementById('currentTime');
     const totalTime = document.getElementById('totalTime');
     const speedButton = document.getElementById('speedButton');
-    const playlist = document.getElementById('playlist');
+    const playlistContainer = document.getElementById('playlist');
     const progressBarWrapper = document.getElementById('progressBarWrapper');
     const progressBar = document.getElementById('progressBar');
     const bufferBar = document.getElementById('bufferBar');
@@ -39,13 +50,30 @@ document.addEventListener('DOMContentLoaded', function() {
             playlists = data;
             data.forEach((playlistData, playlistIndex) => {
                 const playlistTitleLi = document.createElement('li');
-                playlistTitleLi.classList.add('playlist-title');
-                playlistTitleLi.textContent = playlistData.title;
-                playlistTitleLi.addEventListener('click', function() {
-                    currentTrackIndex = tracks.findIndex(track => track === playlistData.tracks[0]);
-                    playTrack(currentTrackIndex);
+                const playlistTitleDiv = document.createElement('div');
+                playlistTitleDiv.classList.add('playlist-title');
+                playlistTitleDiv.textContent = playlistData.title;
+                playlistTitleDiv.setAttribute('data-playlist-index', playlistIndex);
+                playlistTitleDiv.addEventListener('click', function() {
+                    const subPlaylistUl = playlistTitleLi.querySelector(`ul[data-playlist-index="${playlistIndex}"]`);
+                    const isCollapsed = subPlaylistUl.classList.toggle('collapsed');
+                    if (!isCollapsed) {
+                        collapseOtherPlaylists(playlistIndex);
+                    }
                 });
-                playlist.appendChild(playlistTitleLi);
+
+                // Add first track image to the playlist title div
+                if (playlistData.tracks.length > 0) {
+                    const firstTrackImage = document.createElement('img');
+                    firstTrackImage.src = playlistData.tracks[0].image;
+                    firstTrackImage.alt = playlistData.title;
+                    firstTrackImage.classList.add('playlist-title-image');
+                    playlistTitleDiv.prepend(firstTrackImage);
+                }
+
+                const subPlaylistUl = document.createElement('ul');
+                subPlaylistUl.classList.add('playlist-tracks', 'collapsed');
+                subPlaylistUl.setAttribute('data-playlist-index', playlistIndex);
 
                 playlistData.tracks.forEach(track => {
                     tracks.push(track);
@@ -53,6 +81,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 playlistData.tracks.forEach((track, index) => {
                     const li = document.createElement('li');
+                    li.classList.add('track');
+                    li.setAttribute('data-playlist-index', playlistIndex);
                     li.innerHTML = `
                         <img src="${track.image}" alt="${track.title}">
                         <span class="title">${track.title}</span>
@@ -70,8 +100,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (index === playlistData.tracks.length - 1) {
                         li.classList.add('last-playlist-item');
                     }
-                    playlist.appendChild(li);
+                    subPlaylistUl.appendChild(li);
                 });
+
+                playlistTitleLi.appendChild(playlistTitleDiv);
+                playlistTitleLi.appendChild(subPlaylistUl);
+                playlistContainer.appendChild(playlistTitleLi);
             });
             initializePlayerUI();
         })
@@ -282,7 +316,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function scrollToTrack(index, options) {
-        const items = playlist.querySelectorAll('li[data-index]');
+        const items = playlistContainer.querySelectorAll('li[data-index]');
         if (items[index]) {
             items[index].scrollIntoView(options);
         }
@@ -300,7 +334,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 playTrack(currentTrackIndex, true);
                 audioPlayer.currentTime = position;
                 scrollToNextTrackSmooth(index); // Scroll to LIVE track smoothly
-                // updatePlaylistHighlight(currentTrackIndex); // Redundant call, already handled in playTrack
             }
         }
     });
@@ -314,6 +347,7 @@ document.addEventListener('DOMContentLoaded', function() {
             playTrack(currentTrackIndex, false);
             audioPlayer.currentTime = position;
             scrollToLiveTrackNoSmooth(index); // Scroll to LIVE track without smooth
+            expandPlaylistByTrack(track); // Expand playlist with LIVE track
         } else {
             playTrack(currentTrackIndex, false);
         }
@@ -339,6 +373,44 @@ document.addEventListener('DOMContentLoaded', function() {
         speedButton.textContent = playbackRate + 'x';
         updatePlaylistHighlight(index); // Pass the current track index to updatePlaylistHighlight
         updatePlaylistTitle(findPlaylistTitleByTrack(track)); // Update playlist title
+        expandPlaylistByTrack(track); // Expand playlist with current track
+    }
+
+    function expandPlaylistByTrack(track) {
+        const playlistIndex = findPlaylistIndexByTrack(track);
+        if (playlistIndex !== -1) {
+            const subPlaylistUl = playlistContainer.querySelector(`ul[data-playlist-index="${playlistIndex}"]`);
+            if (subPlaylistUl) {
+                subPlaylistUl.classList.remove('collapsed');
+                collapseOtherPlaylists(playlistIndex);
+            }
+        }
+    }
+
+    function findPlaylistByTrack(track) {
+        for (let i = 0; i < playlists.length; i++) {
+            if (playlists[i].tracks.includes(track)) {
+                return { title: playlists[i].title, index: i };
+            }
+        }
+        return { title: '', index: -1 };
+    }
+
+    function findPlaylistTitleByTrack(track) {
+        return findPlaylistByTrack(track).title;
+    }
+
+    function findPlaylistIndexByTrack(track) {
+        return findPlaylistByTrack(track).index;
+    }
+
+    function collapseOtherPlaylists(exceptIndex) {
+        const subPlaylists = playlistContainer.querySelectorAll('ul.playlist-tracks');
+        subPlaylists.forEach((subPlaylist, index) => {
+            if (index !== exceptIndex) {
+                subPlaylist.classList.add('collapsed');
+            }
+        });
     }
 
     function updateLiveButtonState() {
@@ -355,7 +427,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateLiveLabel() {
         const { track, index } = findCurrentTrackAndPosition();
-        const items = playlist.querySelectorAll('li[data-index]');
+        const items = playlistContainer.querySelectorAll('li[data-index]');
         items.forEach((item, i) => {
             const liveLabel = item.querySelector('.live-label');
             if (i === index) {
@@ -372,15 +444,45 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
+
+        // Update playlist title with LIVE label
+        const playlistIndex = findPlaylistIndexByTrack(track);
+        const playlistTitleDivs = playlistContainer.querySelectorAll('div.playlist-title');
+        playlistTitleDivs.forEach((playlistTitleDiv, i) => {
+            const liveLabel = playlistTitleDiv.querySelector('.live-label');
+            if (i === playlistIndex) {
+                if (!liveLabel) {
+                    const label = document.createElement('span');
+                    label.classList.add('live-label');
+                    label.innerHTML = '<span class="live-circle"></span> LIVE';
+                    playlistTitleDiv.appendChild(label);
+                }
+            } else {
+                if (liveLabel) {
+                    liveLabel.remove();
+                }
+            }
+        });
     }
 
     function updatePlaylistHighlight(currentIndex) {
-        const items = playlist.querySelectorAll('li.playing');
+        const items = playlistContainer.querySelectorAll('li.playing');
         items.forEach(item => item.classList.remove('playing'));
-        const currentItem = playlist.querySelector(`li[data-index="${currentIndex}"]`);
+        const currentItem = playlistContainer.querySelector(`li[data-index="${currentIndex}"]`);
         if (currentItem) {
             currentItem.classList.add('playing');
         }
+
+        // Update playlist title highlight
+        const playlistIndex = currentItem.getAttribute('data-playlist-index');
+        const playlistTitleDivs = playlistContainer.querySelectorAll('div.playlist-title');
+        playlistTitleDivs.forEach((playlistTitleDiv, i) => {
+            if (i === parseInt(playlistIndex)) {
+                playlistTitleDiv.classList.add('active');
+            } else {
+                playlistTitleDiv.classList.remove('active');
+            }
+        });
     }
 
     function formatTime(seconds) {
@@ -431,15 +533,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updatePlaylistTitle(title) {
         playlistTitleText.textContent = title;
-    }
-
-    function findPlaylistTitleByTrack(track) {
-        for (const playlistData of playlists) {
-            if (playlistData.tracks.includes(track)) {
-                return playlistData.title;
-            }
-        }
-        return '';
     }
 
     audioPlayer.addEventListener('progress', function() {
