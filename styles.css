@@ -215,6 +215,7 @@ body {
 
 .total-time {
     float: right;
+    padding-left: 5px;
 }
 
 #progressBarWrapper {
@@ -323,6 +324,7 @@ body {
 #playlist li .duration, .playlist-tracks li .duration {
     margin-left: auto;
     text-align: right;
+    padding-left: 5px;
 }
 
 #playlist li.playing, .playlist-tracks li.playing {
