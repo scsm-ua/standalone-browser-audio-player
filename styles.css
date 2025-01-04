@@ -371,7 +371,6 @@ body {
 }
 
 .playlist-tracks {
-    transition: height 0.3s ease-out, padding 0.3s ease-out;
     overflow: hidden;
     height: 0;
 }

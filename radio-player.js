@@ -6,7 +6,8 @@ Volume slider - make light color thiner.
 Two columnts design for big screen - review width to fit left column by height.
 Make playlist subtitles attachable to player.
 Add image to subplaylist data.
-Keep scrolling position on expanding playlist in bottom of screen.
+Keep scrolling position on expanding playlist in bottom of screen - keep on next track?
+Make collapse animation only when collapsing by user?
 */
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -93,9 +94,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         subPlaylistUl.classList.add('expanded');
                         collapseOtherPlaylists(playlistIndex);
                         playlistTitleLi.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        setTimeout(() => {
-                            playlistTitleLi.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }, 300); // Delay to match the CSS transition duration
                     } else {
                         subPlaylistUl.style.height = 0;
                         subPlaylistUl.classList.remove('expanded');
@@ -448,6 +446,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function collapseOtherPlaylists(exceptIndex) {
         const subPlaylists = playlistContainer.querySelectorAll('ul.playlist-tracks');
+        const currentScrollPosition = playlistContainer.scrollTop; // Save current scroll position
+
         subPlaylists.forEach((subPlaylist, index) => {
             if (index !== exceptIndex) {
                 subPlaylist.style.height = 0;
@@ -455,6 +455,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 subPlaylist.classList.remove('expanded');
             }
         });
+
+        playlistContainer.scrollTop = currentScrollPosition; // Restore scroll position
     }
 
     function updateLiveButtonState() {
