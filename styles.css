@@ -58,22 +58,34 @@ body {
 }
 
 #playPauseButton.play::before {
-    content: '▶';
-    font-size: 40px;
-    color: white;
+    content: '';
     display: inline-block;
-    vertical-align: middle;
-    position: relative;
-    left: 3px;
-    top: 2px;
+    width: 0;
+    height: 0;
+    border-left: 20px solid white;
+    border-top: 15px solid transparent;
+    border-bottom: 15px solid transparent;
+    margin-left: 7px;
 }
 
 #playPauseButton.pause::before {
-    content: '❚❚';
-    font-size: 40px;
-    color: white;
+    content: '';
     display: inline-block;
-    vertical-align: middle;
+    width: 10px;
+    height: 30px;
+    background-color: white;
+    position: relative;
+    margin-right: 4px;
+}
+
+#playPauseButton.pause::after {
+    content: '';
+    display: inline-block;
+    width: 10px;
+    height: 30px;
+    background-color: white;
+    position: relative;
+    margin-left: 4px;
 }
 
 #trackInfo {
@@ -130,12 +142,15 @@ body {
     z-index: 2;
     height: 150px;
     background-color: rgba(0, 0, 0, 0.5);
-    padding: 5px;
     border-radius: 5px;
     display: flex;
     flex-direction: column-reverse;
     align-items: center;
     margin-left: 10px;
+    padding-bottom: 5px;
+    width: 35px; /* Width including padding */
+    box-sizing: border-box; /* Ensure padding is included in the width */
+    overflow: hidden; /* Add this line to hide overflow */
 }
 
 #volumeIcon {
@@ -157,18 +172,22 @@ body {
 }
 
 #volumeBarContainer {
-    width: 10px;
-    height: calc(100% - 30px);
+    width: 100%; /* Match the width of #volumeControlContainer */
+    height: calc(100% - 24px); /* Adjust height to ensure it reaches the top */
     background-color: #555;
     position: relative;
+    border-top-left-radius: 5px; /* Add this line to round the top-left corner */
+    border-top-right-radius: 5px; /* Add this line to round the top-right corner */
 }
 
 #volumeBar {
     width: 100%;
-    height: 50%;
+    height: 100%; /* Adjust height to ensure it reaches the top */
     background-color: #e0e0e0;
     position: absolute;
     bottom: 0;
+    border-top-left-radius: 0; /* Remove rounded corners */
+    border-top-right-radius: 0; /* Remove rounded corners */
 }
 
 #progressBarContainer {
@@ -192,6 +211,10 @@ body {
     display: inline-block;
     text-align: center;
     color: white;
+}
+
+.total-time {
+    float: right;
 }
 
 #progressBarWrapper {
@@ -341,8 +364,22 @@ body {
     background-color: #505050;
 }
 
-.collapsed {
-    display: none;
+.playlist-title-text {
+    flex-grow: 1;
+}
+
+.playlist-tracks {
+    transition: height 0.3s ease-out, padding 0.3s ease-out;
+    overflow: hidden;
+    height: 0;
+}
+
+.playlist-tracks.expanded {
+    height: auto;
+}
+
+.playlist-tracks.collapsed {
+    height: 0;
 }
 
 @media (max-height: 700px) {
@@ -374,10 +411,15 @@ body {
         order: 1;
         height: 100vh;
         overflow-y: auto;
+        background-color: #333;
     }
 
     #playlistContainer {
         order: 2;
         overflow-y: auto;
+    }
+
+    .playlist-title {
+        border-left: 1px solid #ccc;
     }
 }

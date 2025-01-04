@@ -1,12 +1,12 @@
 /*
 TODO:
-Fix play icon on android.
 Fix plyaer size on very wide screen (small desktop)
 Fix player size on very small screen (iphone 5c)
-Fix volume slider sensetivity for finger on small screen.
-Volume slider - make width bigger, remove background on slider.
+Volume slider - make light color thiner.
 Two columnts design for big screen - review width to fit left column by height.
 Make playlist subtitles attachable to player.
+Add image to subplaylist data.
+Keep scrolling position on expanding playlist in bottom of screen.
 */
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -44,6 +44,17 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('audioPlayerVolume', audioPlayer.volume);
     };
 
+    const calculateTotalPlaylistTime = (tracks) => {
+        return tracks.reduce((total, track) => total + parseTime(track.duration), 0);
+    };
+
+    const formatTotalTime = (totalSeconds) => {
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        return `${hours > 0 ? hours + ':' : ''}${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    };
+
     fetch('tracks.json')
         .then(response => response.json())
         .then(data => {
@@ -52,13 +63,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 const playlistTitleLi = document.createElement('li');
                 const playlistTitleDiv = document.createElement('div');
                 playlistTitleDiv.classList.add('playlist-title');
-                playlistTitleDiv.textContent = playlistData.title;
+
+                // Create playlist title span
+                const playlistTitleSpan = document.createElement('span');
+                playlistTitleSpan.classList.add('playlist-title-text');
+                playlistTitleSpan.textContent = playlistData.title;
+
+                // Calculate and display total playlist time
+                const totalPlaylistTime = calculateTotalPlaylistTime(playlistData.tracks);
+                const totalTimeSpan = document.createElement('span');
+                totalTimeSpan.classList.add('total-time');
+                totalTimeSpan.textContent = formatTotalTime(totalPlaylistTime);
+
+                // Create LIVE label
+                const liveLabel = document.createElement('span');
+                liveLabel.classList.add('live-label');
+                liveLabel.innerHTML = '<span class="live-circle"></span> LIVE';
+
+                playlistTitleDiv.appendChild(playlistTitleSpan);
+                playlistTitleDiv.appendChild(liveLabel);
+                playlistTitleDiv.appendChild(totalTimeSpan);
+
                 playlistTitleDiv.setAttribute('data-playlist-index', playlistIndex);
                 playlistTitleDiv.addEventListener('click', function() {
                     const subPlaylistUl = playlistTitleLi.querySelector(`ul[data-playlist-index="${playlistIndex}"]`);
                     const isCollapsed = subPlaylistUl.classList.toggle('collapsed');
                     if (!isCollapsed) {
+                        subPlaylistUl.style.height = subPlaylistUl.scrollHeight + 'px';
+                        subPlaylistUl.classList.add('expanded');
                         collapseOtherPlaylists(playlistIndex);
+                    } else {
+                        subPlaylistUl.style.height = 0;
+                        subPlaylistUl.classList.remove('expanded');
                     }
                 });
 
@@ -382,6 +418,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const subPlaylistUl = playlistContainer.querySelector(`ul[data-playlist-index="${playlistIndex}"]`);
             if (subPlaylistUl) {
                 subPlaylistUl.classList.remove('collapsed');
+                subPlaylistUl.classList.add('expanded');
+                subPlaylistUl.style.height = subPlaylistUl.scrollHeight + 'px'; // Ensure height is set for animation
                 collapseOtherPlaylists(playlistIndex);
             }
         }
@@ -408,7 +446,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const subPlaylists = playlistContainer.querySelectorAll('ul.playlist-tracks');
         subPlaylists.forEach((subPlaylist, index) => {
             if (index !== exceptIndex) {
+                subPlaylist.style.height = 0;
                 subPlaylist.classList.add('collapsed');
+                subPlaylist.classList.remove('expanded');
             }
         });
     }
@@ -455,7 +495,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const label = document.createElement('span');
                     label.classList.add('live-label');
                     label.innerHTML = '<span class="live-circle"></span> LIVE';
-                    playlistTitleDiv.appendChild(label);
+                    playlistTitleDiv.insertBefore(label, playlistTitleDiv.querySelector('.total-time'));
                 }
             } else {
                 if (liveLabel) {
