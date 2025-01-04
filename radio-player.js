@@ -92,6 +92,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         subPlaylistUl.style.height = subPlaylistUl.scrollHeight + 'px';
                         subPlaylistUl.classList.add('expanded');
                         collapseOtherPlaylists(playlistIndex);
+                        playlistTitleLi.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         setTimeout(() => {
                             playlistTitleLi.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         }, 300); // Delay to match the CSS transition duration
