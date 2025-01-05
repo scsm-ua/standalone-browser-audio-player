@@ -1,13 +1,14 @@
 /*
 TODO:
-Fix plyaer size on very wide screen (small desktop)
-Fix player size on very small screen (iphone 5c)
 Volume slider - make light color thiner.
-Two columnts design for big screen - review width to fit left column by height.
-Make playlist subtitles attachable to player.
+
 Add image to subplaylist data.
 Keep scrolling position on expanding playlist in bottom of screen - keep on next track?
 Make collapse animation only when collapsing by user?
+Review expand playlist scroll animations logic.
+
+LP:
+Make playlist subtitles attachable to player.
 */
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -93,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         subPlaylistUl.style.height = subPlaylistUl.scrollHeight + 'px';
                         subPlaylistUl.classList.add('expanded');
                         collapseOtherPlaylists(playlistIndex);
-                        playlistTitleLi.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        playlistTitleLi.scrollIntoView({ behavior: 'auto', block: 'start' });
                     } else {
                         subPlaylistUl.style.height = 0;
                         subPlaylistUl.classList.remove('expanded');
@@ -591,4 +592,46 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+
+    const applyPlayerStyles = (player, height, aspectRatio) => {
+        player.style.height = height;
+        player.style.backgroundSize = 'auto 100%';
+        player.style.backgroundPosition = 'center center';
+        player.style.backgroundRepeat = 'no-repeat';
+        player.style.backgroundColor = '#333';
+        player.style.aspectRatio = aspectRatio;
+    };
+
+    const resetPlayerStyles = (player) => {
+        player.style.height = '';
+        player.style.backgroundSize = '';
+        player.style.backgroundPosition = '';
+        player.style.backgroundRepeat = '';
+        player.style.backgroundColor = '';
+        player.style.aspectRatio = '1 / 1'; // Retain aspect ratio
+    };
+
+    const adjustPlayerHeight = () => {
+        const player = document.getElementById('player');
+        const playerWidth = player.offsetWidth;
+        const viewportHeight = window.innerHeight;
+        const marginHeight = viewportHeight - playerWidth;
+
+        if (window.innerWidth >= 1000) { // Wide screens
+            if (marginHeight < 200) {
+                applyPlayerStyles(player, `calc(100vh - 200px)`, '');
+            } else {
+                resetPlayerStyles(player);
+            }
+        } else { // Small screens
+            if (marginHeight < 300) {
+                applyPlayerStyles(player, `calc(100vh - 300px)`, '');
+            } else {
+                resetPlayerStyles(player);
+            }
+        }
+    };
+
+    window.addEventListener('resize', adjustPlayerHeight);
+    adjustPlayerHeight();
 });

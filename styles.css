@@ -1,7 +1,14 @@
+/* Add this meta tag to prevent the automatic browser dark theme */
+@media (prefers-color-scheme: dark) {
+    :root {
+        color-scheme: light;
+    }
+}
+
 body {
     font-family: Arial, sans-serif;
     margin: 0;
-    padding: env(safe-area-inset-top) 0 0 0; /* Add padding to the top */
+    padding: 0;
     display: flex;
     flex-direction: column;
     height: 100vh;
@@ -24,7 +31,7 @@ body {
     padding: 10px;
     height: auto;
     width: calc(100% - 20px);
-    aspect-ratio: 1 / 1;
+    aspect-ratio: 1 / 1; /* Ensure aspect ratio is 1/1 by default */
     flex-shrink: 0;
     background-size: cover;
     background-position: center;
@@ -335,6 +342,7 @@ body {
     color: red;
     font-weight: bold;
     margin-right: 10px;
+    padding-left: 5px;
 }
 
 #playlist li.playlist-title, .playlist-tracks li.playlist-title {
@@ -383,17 +391,31 @@ body {
     height: 0;
 }
 
-@media (max-height: 700px) {
-    #player {
-        aspect-ratio: 2 / 1;
-        background-size: auto 100%;
-        background-position: center center;
-        background-repeat: no-repeat;
-        background-color: #333; /* Same as #trackInfo */
+@media (max-width: 1000px) {
+    #container {
+        max-width: 600px;
+        margin: 0 auto;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow-x: hidden; /* Prevent horizontal scrollbars */
     }
 
-    #playPauseContainer {
-        margin: 0 auto;
+    #player {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px;
+        height: auto;
+        width: calc(100% - 20px);
+        aspect-ratio: 1 / 1;
+        flex-shrink: 0;
+        background-size: cover;
+        background-position: center;
+        position: relative;
+        border: none;
+        justify-content: center; /* Center the play button */
     }
 }
 
@@ -406,6 +428,7 @@ body {
 
     #playerContainer, #playlistContainer {
         width: 50%;
+        overflow-x: hidden; /* Prevent horizontal scrollbars */
     }
 
     #playerContainer {
@@ -413,6 +436,7 @@ body {
         height: 100vh;
         overflow-y: auto;
         background-color: #333;
+        max-width: 600px;
     }
 
     #playlistContainer {
@@ -422,5 +446,22 @@ body {
 
     .playlist-title {
         border-left: 1px solid #ccc;
+    }
+
+    /* Advanced responsive behavior for #playerContainer */
+    #playerContainer {
+        display: flex;
+        flex-direction: column;
+    }
+
+    #player {
+        flex-shrink: 0;
+        background-size: auto 100%;
+        background-position: center center;
+        background-repeat: no-repeat;
+        background-color: #333;
+        display: flex;
+        align-items: center;
+        justify-content: center; /* Center the play button */
     }
 }
