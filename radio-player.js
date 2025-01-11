@@ -1,14 +1,20 @@
 /*
 TODO:
-Volume slider - make light color thiner.
 
-Add image to subplaylist data.
-Keep scrolling position on expanding playlist in bottom of screen - keep on next track?
-Make collapse animation only when collapsing by user?
-Review expand playlist scroll animations logic.
+UI details:
+- Volume slider - make light color thiner.
+- Add image to subplaylist data.
+- review expand collapse animation and logic
+    - Make collapse animation only when collapsing by user?
+- review log height screen
+- play pause icon inside playlist track
+- update volume UI: hide show slider on icon click, no mute.
+
+- Hide player on low height.
+- seek to live on click on live track.
 
 LP:
-Make playlist subtitles attachable to player.
+- Make playlist subtitles attachable to player?
 */
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -57,6 +63,21 @@ document.addEventListener('DOMContentLoaded', function() {
         return `${hours > 0 ? hours + ':' : ''}${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     };
 
+    const createPlayPauseButton = (track, index) => {
+        const button = document.createElement('button');
+        button.classList.add('playlist-track-playPauseButton', 'play');
+        button.setAttribute('aria-label', 'Play/Pause');
+        return button;
+    };
+
+    const calculateBottomThreshold = (element, event) => {
+        const rect = element.getBoundingClientRect();
+        const offsetY = event.clientY - rect.top;
+        const height = rect.height;
+        const bottomThreshold = height - 10; // Allow clicks only within the bottom 10px
+        return { offsetY, bottomThreshold };
+    };
+
     fetch('tracks.json')
         .then(response => response.json())
         .then(data => {
@@ -77,13 +98,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 totalTimeSpan.classList.add('total-time');
                 totalTimeSpan.textContent = formatTotalTime(totalPlaylistTime);
 
-                // Create LIVE label
-                const liveLabel = document.createElement('span');
-                liveLabel.classList.add('live-label');
-                liveLabel.innerHTML = '<span class="live-circle"></span> LIVE';
-
                 playlistTitleDiv.appendChild(playlistTitleSpan);
-                playlistTitleDiv.appendChild(liveLabel);
                 playlistTitleDiv.appendChild(totalTimeSpan);
 
                 playlistTitleDiv.setAttribute('data-playlist-index', playlistIndex);
@@ -91,12 +106,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     const subPlaylistUl = playlistTitleLi.querySelector(`ul[data-playlist-index="${playlistIndex}"]`);
                     const isCollapsed = subPlaylistUl.classList.toggle('collapsed');
                     if (!isCollapsed) {
-                        subPlaylistUl.style.height = subPlaylistUl.scrollHeight + 'px';
                         subPlaylistUl.classList.add('expanded');
                         collapseOtherPlaylists(playlistIndex);
                         playlistTitleLi.scrollIntoView({ behavior: 'auto', block: 'start' });
                     } else {
-                        subPlaylistUl.style.height = 0;
                         subPlaylistUl.classList.remove('expanded');
                     }
                 });
@@ -123,19 +136,40 @@ document.addEventListener('DOMContentLoaded', function() {
                     li.classList.add('track');
                     li.setAttribute('data-playlist-index', playlistIndex);
                     li.innerHTML = `
-                        <img src="${track.image}" alt="${track.title}">
+                        <div class="track-image" style="background-image: url('${track.image}');"></div>
                         <span class="title">${track.title}</span>
                         <span class="duration">${track.duration}</span>
                     `;
                     li.setAttribute('data-src', track.mp3);
                     li.setAttribute('data-index', tracks.indexOf(track));
-                    li.addEventListener('click', function() {
+                    li.addEventListener('click', function(event) {
                         const clickedTrackIndex = parseInt(this.getAttribute('data-index'));
-                        if (clickedTrackIndex !== currentTrackIndex) {
-                            currentTrackIndex = clickedTrackIndex;
-                            playTrack(currentTrackIndex);
+                        const { offsetY, bottomThreshold } = calculateBottomThreshold(this, event);
+
+                        const { track, position, index } = findCurrentTrackAndPosition();
+                        if (clickedTrackIndex === index 
+                            && (clickedTrackIndex !== currentTrackIndex
+                                || isFirstPlay)) {
+
+                                resumeTrack({ track, position, index });
+
+                        } else if (clickedTrackIndex === currentTrackIndex) {
+                            if (offsetY >= bottomThreshold) {
+                                setTrackProgress(event, this);
+                            } else {
+                                if (isPlaying) {
+                                    audioPlayer.pause();
+                                } else {
+                                    audioPlayer.play();
+                                }
+                            }
+                        } else {
+                            playTrack(clickedTrackIndex);
                         }
                     });
+                    const trackImageDiv = li.querySelector('.track-image');
+                    const playPauseButton = createPlayPauseButton(track, tracks.indexOf(track));
+                    trackImageDiv.appendChild(playPauseButton);
                     if (index === playlistData.tracks.length - 1) {
                         li.classList.add('last-playlist-item');
                     }
@@ -170,8 +204,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (isFirstPlay) {
                 const { track, position, index } = findCurrentTrackAndPosition();
                 if (track) {
-                    currentTrackIndex = index;
-                    playTrack(currentTrackIndex, true);
+                    playTrack(index, true);
                     audioPlayer.currentTime = position;
                 } else {
                     audioPlayer.play();
@@ -317,6 +350,7 @@ document.addEventListener('DOMContentLoaded', function() {
         playPauseButton.classList.remove('play');
         playPauseButton.classList.add('pause');
         updateLiveButtonState();
+        updatePlaylistPlayPauseButton(currentTrackIndex);
     });
 
     audioPlayer.addEventListener('pause', function() {
@@ -324,6 +358,7 @@ document.addEventListener('DOMContentLoaded', function() {
         playPauseButton.classList.remove('pause');
         playPauseButton.classList.add('play');
         updateLiveButtonState();
+        updatePlaylistPlayPauseButton(currentTrackIndex, true);
     });
 
     audioPlayer.addEventListener('timeupdate', function() {
@@ -340,8 +375,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     audioPlayer.addEventListener('ended', function() {
-        currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
-        playTrack(currentTrackIndex);
+        playTrack((currentTrackIndex + 1) % tracks.length);
         scrollToNextTrackSmooth(currentTrackIndex); // Scroll to next track smoothly
         updateLiveButtonState();
     });
@@ -365,15 +399,22 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Error playing track:', audioPlayer.error);
     });
 
+    function resumeLive() {
+        const { track, position, index } = findCurrentTrackAndPosition();
+        resumeTrack({ track, position, index });
+    }
+
+    function resumeTrack({ track, position, index }) {
+        if (track) {
+            playTrack(index, true);
+            audioPlayer.currentTime = position;
+            scrollToNextTrackSmooth(index); // Scroll to LIVE track smoothly
+        }
+    }
+
     liveButton.addEventListener('click', function() {
         if (!liveButton.classList.contains('active')) {
-            const { track, position, index } = findCurrentTrackAndPosition();
-            if (track) {
-                currentTrackIndex = index;
-                playTrack(currentTrackIndex, true);
-                audioPlayer.currentTime = position;
-                scrollToNextTrackSmooth(index); // Scroll to LIVE track smoothly
-            }
+            resumeLive();
         }
     });
 
@@ -382,9 +423,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function initializePlayerUI() {
         const { track, position, index } = findCurrentTrackAndPosition();
         if (track) {
-            currentTrackIndex = index;
-            playTrack(currentTrackIndex, false);
-            audioPlayer.currentTime = position;
+            playTrack(index, false);
             scrollToLiveTrackNoSmooth(index); // Scroll to LIVE track without smooth
             expandPlaylistByTrack(track); // Expand playlist with LIVE track
         } else {
@@ -396,6 +435,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function playTrack(index, shouldPlay = true) {
+        currentTrackIndex = index;
         const track = tracks[index];
         if (audioPlayer.src !== track.mp3) {
             document.getElementById('audioSource').src = track.mp3;
@@ -413,6 +453,9 @@ document.addEventListener('DOMContentLoaded', function() {
         updatePlaylistHighlight(index); // Pass the current track index to updatePlaylistHighlight
         updatePlaylistTitle(findPlaylistTitleByTrack(track)); // Update playlist title
         expandPlaylistByTrack(track); // Expand playlist with current track
+        if (shouldPlay) {
+            updatePlaylistPlayPauseButton(index);
+        }
     }
 
     function expandPlaylistByTrack(track) {
@@ -422,7 +465,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (subPlaylistUl) {
                 subPlaylistUl.classList.remove('collapsed');
                 subPlaylistUl.classList.add('expanded');
-                subPlaylistUl.style.height = subPlaylistUl.scrollHeight + 'px'; // Ensure height is set for animation
                 collapseOtherPlaylists(playlistIndex);
             }
         }
@@ -447,17 +489,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function collapseOtherPlaylists(exceptIndex) {
         const subPlaylists = playlistContainer.querySelectorAll('ul.playlist-tracks');
-        const currentScrollPosition = playlistContainer.scrollTop; // Save current scroll position
-
         subPlaylists.forEach((subPlaylist, index) => {
             if (index !== exceptIndex) {
-                subPlaylist.style.height = 0;
                 subPlaylist.classList.add('collapsed');
                 subPlaylist.classList.remove('expanded');
             }
         });
-
-        playlistContainer.scrollTop = currentScrollPosition; // Restore scroll position
     }
 
     function updateLiveButtonState() {
@@ -473,10 +510,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateLiveLabel() {
-        const { track, index } = findCurrentTrackAndPosition();
+        const { track, position, index } = findCurrentTrackAndPosition();
         const items = playlistContainer.querySelectorAll('li[data-index]');
         items.forEach((item, i) => {
             const liveLabel = item.querySelector('.live-label');
+            const liveProgress = item.querySelector('.live-progress');
+            const playProgress = item.querySelector('.play-progress');
             if (i === index) {
                 if (!liveLabel) {
                     const label = document.createElement('span');
@@ -485,9 +524,34 @@ document.addEventListener('DOMContentLoaded', function() {
                     const durationElement = item.querySelector('.duration');
                     item.insertBefore(label, durationElement);
                 }
+                if (!liveProgress) {
+                    const progress = document.createElement('div');
+                    progress.classList.add('live-progress');
+                    item.style.position = 'relative'; // Ensure the item has relative positioning
+                    item.appendChild(progress);
+                }
+                updateLiveProgress(liveProgress, track, position);
             } else {
                 if (liveLabel) {
                     liveLabel.remove();
+                }
+                if (liveProgress) {
+                    liveProgress.remove();
+                }
+            }
+
+            // Ensure the play progress bar is always visible on the playing track
+            if (i === currentTrackIndex) {
+                if (!playProgress) {
+                    const progress = document.createElement('div');
+                    progress.classList.add('play-progress');
+                    item.style.position = 'relative'; // Ensure the item has relative positioning
+                    item.appendChild(progress);
+                }
+                updatePlayProgress(playProgress);
+            } else {
+                if (playProgress) {
+                    playProgress.remove();
                 }
             }
         });
@@ -512,6 +576,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    function updateLiveProgress(element, track, position) {
+        if (!element) return; // Ensure the element exists
+        const trackDuration = parseTime(track.duration);
+        const progressPercentage = (position / trackDuration) * 100;
+        element.style.left = progressPercentage + '%';
+        element.style.visibility = 'visible'; // Make visible only after position is applied
+    }
+
+    function updatePlayProgress(element) {
+        if (!element) return; // Ensure the element exists
+        const trackDuration = audioPlayer.duration;
+        const progressPercentage = (audioPlayer.currentTime / trackDuration) * 100;
+        element.style.width = progressPercentage + '%';
+    }
+
     function updatePlaylistHighlight(currentIndex) {
         const items = playlistContainer.querySelectorAll('li.playing');
         items.forEach(item => item.classList.remove('playing'));
@@ -530,6 +609,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 playlistTitleDiv.classList.remove('active');
             }
         });
+    }
+
+    function updatePlaylistPlayPauseButton(currentIndex, pause) {
+        const pauseButtons = playlistContainer.querySelectorAll('.playlist-track-playPauseButton.pause');
+
+        pauseButtons.forEach(button => {
+            button.classList.remove('pause');
+            button.classList.add('play');
+        });
+
+        if (!pause) {
+            const currentButton = playlistContainer.querySelector(`li.track[data-index="${currentIndex}"] .playlist-track-playPauseButton`);
+            if (currentButton) {
+                currentButton.classList.remove('play');
+                currentButton.classList.add('pause');
+            }
+        }
     }
 
     function formatTime(seconds) {
@@ -634,4 +730,75 @@ document.addEventListener('DOMContentLoaded', function() {
 
     window.addEventListener('resize', adjustPlayerHeight);
     adjustPlayerHeight();
+
+    const setTrackProgress = (event, trackElement) => {
+        const rect = trackElement.getBoundingClientRect();
+        const offsetY = event.clientY - rect.top;
+        const offsetX = event.clientX - rect.left;
+        const width = rect.width;
+        const height = rect.height;
+        const bottomThreshold = height - 10; // Allow clicks only within the bottom 10px
+        if (offsetY >= bottomThreshold) {
+            const percentage = Math.min(Math.max(offsetX / width, 0), 1);
+            const trackIndex = parseInt(trackElement.getAttribute('data-index'));
+            const track = tracks[trackIndex];
+            const trackDuration = parseTime(track.duration);
+            const newTime = percentage * trackDuration;
+            if (currentTrackIndex === trackIndex) {
+                audioPlayer.currentTime = newTime;
+            } else {
+                playTrack(trackIndex, true);
+                audioPlayer.currentTime = newTime;
+            }
+        }
+    };
+
+    const createTooltip = () => {
+        const tooltip = document.createElement('div');
+        tooltip.classList.add('tooltip');
+        return tooltip;
+    };
+
+    const updateTooltip = (tooltip, event, trackElement) => {
+        const rect = trackElement.getBoundingClientRect();
+        const offsetX = event.clientX - rect.left;
+        const width = rect.width;
+        const percentage = Math.min(Math.max(offsetX / width, 0), 1);
+        const trackIndex = parseInt(trackElement.getAttribute('data-index'));
+        const track = tracks[trackIndex];
+        const trackDuration = parseTime(track.duration);
+        const seekTime = formatTime(percentage * trackDuration);
+        tooltip.textContent = seekTime;
+        tooltip.style.left = `${offsetX}px`;
+    };
+
+    playlistContainer.addEventListener('mouseover', function(event) {
+        const trackElement = event.target.closest('li.track');
+        if (trackElement && trackElement.classList.contains('playing')) {
+            let tooltip = trackElement.querySelector('.tooltip');
+            if (!tooltip) {
+                tooltip = createTooltip();
+                trackElement.appendChild(tooltip);
+            }
+            trackElement.addEventListener('mousemove', function(event) {
+                const { offsetY, bottomThreshold } = calculateBottomThreshold(trackElement, event);
+                if (offsetY >= bottomThreshold) {
+                    tooltip.style.visibility = 'visible';
+                    updateTooltip(tooltip, event, trackElement);
+                } else {
+                    tooltip.style.visibility = 'hidden';
+                }
+            });
+            trackElement.addEventListener('mouseleave', function() {
+                tooltip.remove();
+            });
+        }
+    });
+
+    playlistContainer.addEventListener('click', function(event) {
+        const liveLabel = event.target.closest('.live-label');
+        if (liveLabel) {
+            liveButton.click();
+        }
+    });
 });

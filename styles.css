@@ -256,10 +256,11 @@ body {
 .live-label {
     display: flex;
     align-items: center;
-    margin-left: auto; /* Align to the right */
+    margin-left: auto;
 }
 
 .live-circle {
+    display: inline-block;
     width: 8px;
     height: 8px;
     background-color: red;
@@ -273,7 +274,7 @@ body {
         background-color: red;
     }
     50% {
-        background-color: #ffcccc;
+        background-color: transparent;
     }
 }
 
@@ -306,6 +307,7 @@ body {
 
 #playlist li, .playlist-tracks li {
     align-items: center;
+    position: relative; /* Add this line to ensure relative positioning */
 }
 
 .playlist-tracks li {
@@ -321,6 +323,16 @@ body {
     width: 30px;
     height: 30px;
     margin-right: 10px;
+}
+
+.track-image {
+    width: 30px;
+    height: 30px;
+    margin-right: 10px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative; /* Ensure relative positioning for centering the button */
 }
 
 #playlist li .title, .playlist-tracks li .title {
@@ -339,8 +351,6 @@ body {
 }
 
 #playlist li .live-label, .playlist-tracks li .live-label {
-    color: red;
-    font-weight: bold;
     margin-right: 10px;
     padding-left: 5px;
 }
@@ -379,16 +389,131 @@ body {
 }
 
 .playlist-tracks {
-    overflow: hidden;
-    height: 0;
+    display: none;
 }
 
 .playlist-tracks.expanded {
-    height: auto;
+    display: block;
 }
 
 .playlist-tracks.collapsed {
     height: 0;
+}
+
+.live-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 8px; /* Set the width to the size of the dot */
+    height: 8px; /* Set the height to the size of the dot */
+    background-color: red; /* Set the color to red */
+    border-radius: 50%; /* Make it a circle */
+    transform: translate(-50%, 50%); /* Center the dot on the bottom border */
+    clip-path: inset(0 0 50% 0); /* Hide the bottom half of the circle */
+    z-index: 3; /* Ensure live progress is above usual track progress */
+    visibility: hidden; /* Initially hidden */
+}
+
+.play-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    background-color: #333; /* Dark color for play progress */
+    width: 0;
+    transition: width 0.1s linear;
+    z-index: 2; /* Ensure usual track progress is below live progress */
+}
+
+.playlist-track-playPauseButton {
+    width: 22px; /* Reduced from 30px */
+    height: 22px; /* Reduced from 30px */
+    border-radius: 50%;
+    border: none;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    text-align: center;
+    line-height: 22px; /* Adjusted to match new height */
+    position: absolute;
+    top: 50%; /* Center vertically */
+    left: 50%; /* Center horizontally */
+    transform: translate(-50%, -50%); /* Adjust position to center */
+}
+
+.playlist-track-playPauseButton.play::before {
+    content: '';
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-left: 8px solid white; /* Adjusted to match new button size */
+    border-top: 6px solid transparent; /* Adjusted to match new button size */
+    border-bottom: 6px solid transparent; /* Adjusted to match new button size */
+    margin-left: 2px; /* Adjusted to match new button size */
+}
+
+.playlist-track-playPauseButton.pause::before {
+    content: '';
+    display: inline-block;
+    width: 4px; /* Adjusted to match new button size */
+    height: 12px; /* Adjusted to match new button size */
+    background-color: white;
+    position: relative;
+    margin-right: 1px; /* Adjusted to match new button size */
+}
+
+.playlist-track-playPauseButton.pause::after {
+    content: '';
+    display: inline-block;
+    width: 4px; /* Adjusted to match new button size */
+    height: 12px; /* Adjusted to match new button size */
+    background-color: white;
+    position: relative;
+    margin-left: 1px; /* Adjusted to match new button size */
+}
+
+.track {
+    position: relative; /* Ensure relative positioning for progress bar */
+    cursor: pointer; /* Make the track clickable */
+}
+
+.track .tooltip {
+    position: absolute;
+    bottom: 10px; /* Position above the clickable area */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 5px;
+    border-radius: 3px;
+    font-size: 12px;
+    white-space: nowrap;
+    visibility: hidden; /* Initially hidden */
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.track .tooltip::after {
+    content: '';
+    position: absolute;
+    bottom: -10px; /* Position the arrow below the tooltip */
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: rgba(0, 0, 0, 0.7) transparent transparent transparent; /* Arrow pointing down */
+}
+
+.track:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+
+.track.playing .tooltip {
+    visibility: visible;
+    opacity: 1;
 }
 
 @media (max-width: 1000px) {
@@ -417,11 +542,17 @@ body {
         border: none;
         justify-content: center; /* Center the play button */
     }
+
+    @media (max-height: 500px) {
+        #playerContainer {
+            display: none;
+        }
+    }
 }
 
 @media (min-width: 1000px) {
     #container {
-        max-width: 2000px;
+        max-width: 1200px;
         display: flex;
         flex-direction: row;
     }
@@ -463,5 +594,15 @@ body {
         display: flex;
         align-items: center;
         justify-content: center; /* Center the play button */
+    }
+
+    @media (max-height: 400px) {
+        #playerContainer {
+            display: none;
+        }
+
+        #container {
+            max-width: 600px;
+        }
     }
 }
