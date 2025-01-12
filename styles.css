@@ -461,7 +461,7 @@ body {
     height: 12px;
     background-color: white;
     position: relative;
-    margin-right: 1px;
+    margin-right: -5px;
 }
 
 .playlist-track-playPauseButton.pause::after {
@@ -471,7 +471,7 @@ body {
     height: 12px;
     background-color: white;
     position: relative;
-    margin-left: 1px;
+    margin-left: -5px;
 }
 
 .track {
