@@ -543,7 +543,7 @@ body {
         justify-content: center;
     }
 
-    @media (max-height: 500px) {
+    @media (max-height: 650px) {
         #playerContainer {
             display: none;
         }

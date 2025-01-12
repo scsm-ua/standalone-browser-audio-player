@@ -10,8 +10,7 @@ UI details:
 - play pause icon inside playlist track
 - update volume UI: hide show slider on icon click, no mute.
 
-- Hide player on low height.
-- seek to live on click on live track.
+- tracks ordere in big playlist.
 
 LP:
 - Make playlist subtitles attachable to player?
@@ -714,14 +713,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const marginHeight = viewportHeight - playerWidth;
 
         if (window.innerWidth >= 1000) { // Wide screens
-            if (marginHeight < 200) {
-                applyPlayerStyles(player, `calc(100vh - 200px)`, '');
+            if (marginHeight < 300) {
+                applyPlayerStyles(player, `calc(100vh - 300px)`, '');
             } else {
                 resetPlayerStyles(player);
             }
         } else { // Small screens
-            if (marginHeight < 300) {
-                applyPlayerStyles(player, `calc(100vh - 300px)`, '');
+            if (marginHeight < 500) {
+                applyPlayerStyles(player, `calc(100vh - 500px)`, '');
             } else {
                 resetPlayerStyles(player);
             }
