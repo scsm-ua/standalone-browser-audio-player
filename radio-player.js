@@ -653,8 +653,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function parseTime(timeString) {
-        const [minutes, seconds] = timeString.split(':').map(Number);
-        return minutes * 60 + seconds;
+        const parts = timeString.split(':').map(Number);
+        if (parts.length === 3) {
+            const [hours, minutes, seconds] = parts;
+            return hours * 3600 + minutes * 60 + seconds;
+        } else if (parts.length === 2) {
+            const [minutes, seconds] = parts;
+            return minutes * 60 + seconds;
+        } else if (parts.length === 1) {
+            return parts[0];
+        }
+        return 0;
     }
 
     function getTotalDuration() {
@@ -713,8 +722,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const marginHeight = viewportHeight - playerWidth;
 
         if (window.innerWidth >= 1000) { // Wide screens
-            if (marginHeight < 300) {
-                applyPlayerStyles(player, `calc(100vh - 300px)`, '');
+            if (marginHeight < 200) {
+                applyPlayerStyles(player, `calc(100vh - 200px)`, '');
             } else {
                 resetPlayerStyles(player);
             }
